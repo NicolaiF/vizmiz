@@ -14,7 +14,6 @@ export const Matrix = () => {
     constructGrid[i] = a;
   }
   const [grid, setGrid] = React.useState(constructGrid);
-  console.log(grid);
 
   const synthB = new Tone.AMSynth().toDestination();
 
