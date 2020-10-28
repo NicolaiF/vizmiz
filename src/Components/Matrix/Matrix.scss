@@ -1,8 +1,14 @@
+$cell-margin: 0.25rem;
 .vizmiz-matrix {
-  &-row {
-    margin-bottom: 0.25rem;
+  &-wrapper {
+    display: flex;
+  }
+  &-column {
+    display: flex;
+    flex-direction: column-reverse;
   }
   &-cell {
-    margin-right: 0.25rem;
+    margin-bottom: $cell-margin;
+    margin-right: $cell-margin;
   }
 }
