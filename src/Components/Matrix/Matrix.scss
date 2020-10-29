@@ -8,9 +8,10 @@ $cell-margin: 0.25rem;
     flex-direction: column-reverse;
     &--active {
       background-color: #74b96988;
+      transform: matrix(01, 0, 0, 1, 0, -1);
     }
     &:nth-child(4n) {
-      border-right: 5px solid grey;
+      border-right: 3px solid grey;
     }
   }
   &-cell {
