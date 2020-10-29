@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import * as Tone from "tone";
 import { Cell } from "../Cell/Cell";
 import "./Matrix.scss";
+import classNames from "classnames";
 
-export const Matrix = () => {
-  const pentatonic = ["C", "D", "E", "G", "A"];
+function generateMatrix() {
   let a = new Array(16);
   for (var i = 0; i < a.length; ++i) {
     a[i] = false;
@@ -14,12 +14,27 @@ export const Matrix = () => {
   for (let i = 0; i < a.length; i++) {
     constructGrid[i] = a;
   }
-  const [grid, setGrid] = React.useState(constructGrid);
+  return constructGrid;
+}
+const chosenScale = ["C", "D", "E", "G", "A"];
 
-  const synthB = new Tone.AMSynth();
-  synthB.set({
+const OFFSET = 1;
+const getNote = (note) => {
+  return (
+    chosenScale[note % chosenScale.length] +
+    (Math.floor(note / chosenScale.length) + OFFSET)
+  );
+};
+
+export const Matrix = () => {
+  const [grid, setGrid] = useState(generateMatrix());
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentColumn, setCurrentColumns] = useState<number | null>(null);
+
+  const synth = new Tone.PolySynth();
+  synth.set({
     envelope: {
-      attack: 0.027,
+      attack: 0.05,
       attackCurve: "linear",
       decay: 0.5,
       decayCurve: "exponential",
@@ -28,32 +43,81 @@ export const Matrix = () => {
       sustain: 0.4,
     },
   });
-  synthB.toDestination();
+  synth.toDestination();
 
-  const loopB = new Tone.Loop((time) => {
-    synthB.triggerAttackRelease("C4", "8n", time);
-  }, "1m").start(0);
+  const handleCellClick = (row, note) => {
+    let updatedGrid = grid.map((gridRow, i) =>
+      gridRow.map((gridNote, j) => {
+        if (i === row && note === j) {
+          return !gridNote;
+        }
+        return gridNote;
+      })
+    );
+    setGrid(updatedGrid);
+  };
+  const play = async () => {
+    if (isPlaying) {
+      setIsPlaying(false);
+      setCurrentColumns(null);
+      await Tone.Transport.toggle();
+      return;
+    }
+    setIsPlaying(true);
+    let music = [];
+    grid.map((column, index) => {
+      let columnNotes = [];
+      column.map(
+        (shouldPlay, noteIndex) =>
+          shouldPlay && columnNotes.push(getNote(noteIndex))
+      );
+      music.push(columnNotes);
+    });
 
+    await Tone.start();
+
+    // Monophonic;
+    const seq = new Tone.Sequence(
+      (time, column) => {
+        setCurrentColumns(column);
+        synth.triggerAttackRelease(music[column], "16n", time);
+      },
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+      "8n"
+    ).start(0);
+
+    await Tone.Transport.toggle();
+  };
   return (
-    <div className="vizmiz-matrix-wrapper">
-      {grid.map((l, row) => (
-        <div className="vizmiz-matrix-column">
-          {l.map((k: any, note) => (
-            <span className="vizmiz-matrix-cell">
-              {/* <Cell></Cell> */}
-              <Cell
-                onClick={() =>
-                  synthB.triggerAttackRelease(
-                    pentatonic[note % 5] + (Math.floor(note / 5) + 1),
-                    "8n"
-                  )
-                }
-                note={pentatonic[note % 5] + (Math.floor(note / 5) + 1)}
-              ></Cell>
-            </span>
-          ))}
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="vizmiz-matrix-wrapper">
+        {grid.map((l, row) => (
+          <div
+            className={classNames("vizmiz-matrix-column", {
+              "vizmiz-matrix-column--active": row === currentColumn,
+            })}
+            key={l + row}
+          >
+            {l.map((k: any, note) => (
+              <span className="vizmiz-matrix-cell" key={getNote(note)}>
+                <Cell
+                  onClick={() => handleCellClick(row, note)}
+                  isActive={grid[row][note]}
+                  note={getNote(note)}
+                ></Cell>
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
+      <button
+        className={classNames("vizmiz-matrix-play", {
+          "vizmiz-matrix-play--playing": isPlaying,
+        })}
+        onClick={() => play()}
+      >
+        Play
+      </button>
+    </>
   );
 };

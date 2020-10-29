@@ -6,9 +6,35 @@ $cell-margin: 0.25rem;
   &-column {
     display: flex;
     flex-direction: column-reverse;
+    &--active {
+      background-color: #74b96988;
+    }
+    &:nth-child(4n) {
+      border-right: 5px solid grey;
+    }
   }
   &-cell {
     margin-bottom: $cell-margin;
     margin-right: $cell-margin;
+  }
+  &-play {
+    appearance: none;
+    border: 0px solid grey;
+    border-radius: 2px;
+    color: #eee;
+    cursor: pointer;
+    padding: 8px;
+    min-width: 13rem;
+    margin-top: 2rem;
+    background: #757575;
+    font-family: inherit;
+    transition: transform 0.2s cubic-bezier(0.94, 0.17, 0.14, 0.53);
+    &--playing {
+      background: #393939;
+      transform: scale(0.9);
+    }
+    &:focus {
+      outline: none;
+    }
   }
 }

@@ -4,19 +4,15 @@ import "./Cell.scss";
 
 type CellProps = {
   note: string;
-  onClick: () => void;
+  isActive: boolean;
+  [key: string]: any;
 };
 
-export const Cell: React.FC<CellProps> = ({ note, onClick }) => {
-  const [active, setActive] = React.useState(false);
-  const handleClick = () => {
-    setActive((prev) => !prev);
-    onClick();
-  };
+export const Cell: React.FC<CellProps> = ({ isActive, note, ...rest }) => {
   return (
     <button
-      className={classNames("vizmiz-cell", { "vizmiz-cell--active": active })}
-      onClick={handleClick}
+      className={classNames("vizmiz-cell", { "vizmiz-cell--active": isActive })}
+      {...rest}
     >
       {note}
     </button>
